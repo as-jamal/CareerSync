@@ -1,0 +1,20 @@
+Job Title: Python Backend Developer
+Company: Apex Innovations
+Location: Remote / New York, NY
+
+Role Overview:
+We are looking for a passionate Python Backend Developer to design, build, and maintain robust API services for our scalable cloud platform. You will collaborate with frontend engineers and DevOps teams to deliver high-performance applications.
+
+Key Responsibilities:
+- Design and develop RESTful APIs using Python and Flask / Django.
+- Manage SQL database schemas, write complex queries, and optimize performance.
+- Containerize services using Docker and orchestrate deployments on AWS cloud infrastructure.
+- Maintain clean code quality, unit tests, and version control using Git.
+
+Requirements & Qualifications:
+- 1-3 years of experience developing web applications with Python.
+- Strong knowledge of relational databases (PostgreSQL / MySQL / SQL).
+- Hands-on experience with REST APIs, Flask, or Django framework.
+- Experience with Docker containerization and AWS (EC2, S3, ECS).
+- Familiarity with HTML, CSS, JavaScript, and Git workflows.
+- Bachelor's degree in Computer Science, Software Engineering, or related field.

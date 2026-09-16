@@ -1,0 +1,30 @@
+ALEX MORGAN
+Email: alex.morgan@example.com | Phone: (555) 234-5678 | GitHub: github.com/alexmorgan | LinkedIn: linkedin.com/in/alexmorgan
+
+PROFESSIONAL SUMMARY:
+Energetic Software Engineer and Web Developer with strong background in Python backend development, REST API design, and database management. Proven track record of delivering clean web applications and university project systems.
+
+EDUCATION:
+Bachelor of Science in Computer Science
+State University — Graduated May 2024
+GPA: 3.8 / 4.0
+
+TECHNICAL SKILLS:
+- Languages: Python, JavaScript, SQL, HTML5, CSS3
+- Frameworks & Libraries: Flask, REST APIs, Bootstrap, Jinja2
+- Databases: PostgreSQL, SQLite, MySQL
+- Tools: Git, GitHub, VS Code, Postman, Linux CLI
+
+PROJECTS:
+1. E-Commerce Backend Service (Python, Flask, SQL)
+   - Engineered a RESTful API backend handling product catalogs, user authentication, and shopping cart logic.
+   - Designed normalized PostgreSQL database schemas and optimized complex JOIN queries, reducing API latency by 20%.
+   - Integrated JWT tokens for secure authentication and route protection.
+
+2. Student Analytics & Grading Portal (Python, HTML, CSS, JavaScript)
+   - Created a web-based dashboard allowing university instructors to track student assignment submissions and grades.
+   - Built dynamic charts using JavaScript and styled modern responsive glassmorphism UI components.
+   - Implemented automated CSV report exports and search filtering functionality.
+
+3. Weather Data Parser & Microservice (Python, REST APIs)
+   - Built a background microservice that ingests open weather API data and caches weather metrics for rapid client queries.

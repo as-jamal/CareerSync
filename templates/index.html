@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HireMind AI — Agentic Resume Intelligence & Career Matching Platform</title>
+    <!-- Modern Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="app-background">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+        <div class="blob blob-3"></div>
+    </div>
+
+    <div class="app-container">
+        <!-- HEADER -->
+        <header class="navbar">
+            <div class="brand-box">
+                <div class="brand-logo">
+                    <i class="fa-solid fa-brain"></i>
+                </div>
+                <div>
+                    <h1 class="brand-title">HIREMIND <span class="accent-text">AI</span></h1>
+                    <p class="brand-tagline">Agentic Resume Intelligence</p>
+                </div>
+            </div>
+
+            <div class="nav-controls">
+                <div class="mode-tabs">
+                    <button class="tab-btn active" id="tab-candidate-btn" onclick="switchMode('candidate')">
+                        <i class="fa-solid fa-user-check"></i> Single Match
+                    </button>
+                    <button class="tab-btn" id="tab-recruiter-btn" onclick="switchMode('recruiter')">
+                        <i class="fa-solid fa-users-viewfinder"></i> Recruiter Mode
+                    </button>
+                </div>
+                <button class="btn btn-demo" id="btn-demo" onclick="loadDemoData()">
+                    <i class="fa-solid fa-bolt"></i> ⚡ Load Hackathon Demo
+                </button>
+            </div>
+        </header>
+
+        <!-- SUBTITLE HERO -->
+        <section class="hero-section">
+            <h2 class="hero-subtitle">Understand your fit. Discover your gaps. Prepare for your next opportunity.</h2>
+            <div class="status-badge-container">
+                {% if api_configured %}
+                    <span class="status-badge badge-live"><i class="fa-solid fa-signal"></i> LLM API Live</span>
+                {% else %}
+                    <span class="status-badge badge-offline"><i class="fa-solid fa-circle-nodes"></i> Offline / Demo AI Active</span>
+                {% endif %}
+                <span class="status-badge badge-info"><i class="fa-solid fa-shield-halved"></i> Responsible AI Evaluation</span>
+            </div>
+        </section>
+
+        <!-- CANDIDATE MODE SECTION -->
+        <main id="candidate-mode-view">
+            <section class="card glass-card input-card">
+                <div class="input-grid">
+                    <!-- LEFT: RESUME UPLOAD -->
+                    <div class="input-column">
+                        <div class="column-header">
+                            <h3><i class="fa-solid fa-file-pdf"></i> 1. Candidate Resume</h3>
+                            <span class="badge-tag">PDF / DOCX / TXT</span>
+                        </div>
+                        <div class="upload-zone" id="upload-zone" onclick="document.getElementById('resume-file-input').click()">
+                            <input type="file" id="resume-file-input" accept=".pdf,.docx,.txt" style="display:none;" onchange="handleFileSelect(event)">
+                            <div class="upload-icon">
+                                <i class="fa-solid fa-cloud-arrow-up"></i>
+                            </div>
+                            <p class="upload-title">Drag & Drop Resume here</p>
+                            <p class="upload-subtitle">or <span class="link-text">browse files</span> from computer</p>
+                            <div class="file-details" id="file-details" style="display:none;">
+                                <i class="fa-solid fa-file-lines file-icon"></i>
+                                <span id="file-name-display">my_resume.pdf</span>
+                                <button type="button" class="btn-remove-file" onclick="removeFile(event)"><i class="fa-solid fa-xmark"></i></button>
+                            </div>
+                        </div>
+                        <div class="toggle-text-input">
+                            <button type="button" class="btn-link" onclick="togglePasteResume()">
+                                <i class="fa-solid fa-code"></i> Or paste resume text directly
+                            </button>
+                            <div id="paste-resume-wrapper" style="display:none; margin-top: 10px;">
+                                <textarea id="resume-text-input" placeholder="Paste full resume text here..." rows="6"></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- RIGHT: JOB DESCRIPTION -->
+                    <div class="input-column">
+                        <div class="column-header">
+                            <h3><i class="fa-solid fa-briefcase"></i> 2. Target Job Description</h3>
+                            <button type="button" class="btn-xs" onclick="loadSampleJob()"><i class="fa-solid fa-wand-magic-sparkles"></i> Load Sample Job</button>
+                        </div>
+                        <textarea id="job-description-input" placeholder="Paste job description, responsibilities, and key tech stack requirements here..." rows="9"></textarea>
+                    </div>
+                </div>
+
+                <!-- ANALYZE BUTTON -->
+                <div class="action-footer">
+                    <button class="btn btn-primary btn-lg" id="analyze-btn" onclick="startAnalysis()">
+                        <span>✨ ANALYZE MATCH</span> <i class="fa-solid fa-arrow-right"></i>
+                    </button>
+                </div>
+            </section>
+
+            <!-- LOADING OVERLAY / CARD -->
+            <div class="card glass-card loading-card" id="loading-card" style="display: none;">
+                <div class="loader-content">
+                    <div class="agent-pulse-spinner">
+                        <div class="spinner-ring"></div>
+                        <i class="fa-solid fa-robot agent-icon"></i>
+                    </div>
+                    <h3 class="loading-title">AI Agent is analyzing your profile...</h3>
+                    <p class="loading-step" id="loading-step-text">Parsing structural text & extracting credentials...</p>
+                    <div class="progress-bar-container">
+                        <div class="progress-bar-fill" id="loading-progress-fill"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RESULTS DASHBOARD -->
+            <div id="results-dashboard" style="display: none;">
+                <!-- OVERALL MATCH SCORE BANNER -->
+                <section class="card glass-card match-score-card">
+                    <div class="score-banner-grid">
+                        <!-- Score Circle -->
+                        <div class="score-circle-wrapper">
+                            <div class="circular-progress" id="score-gauge">
+                                <svg viewBox="0 0 100 100" class="gauge-svg">
+                                    <circle class="gauge-bg" cx="50" cy="50" r="42"></circle>
+                                    <circle class="gauge-fill" id="gauge-fill-circle" cx="50" cy="50" r="42" stroke-dasharray="264" stroke-dashoffset="264"></circle>
+                                </svg>
+                                <div class="gauge-center">
+                                    <span class="gauge-number" id="overall-score-value">0%</span>
+                                    <span class="gauge-label" id="overall-match-label">Analyzing</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Score Breakdown Columns -->
+                        <div class="score-breakdown">
+                            <div class="breakdown-header">
+                                <h3><i class="fa-solid fa-chart-pie"></i> Evaluation Breakdown</h3>
+                                <span class="methodology-tag" title="40% Skills | 30% Experience | 15% Education | 15% Job Relevance"><i class="fa-solid fa-calculator"></i> Weighted AI Methodology</span>
+                            </div>
+                            <div class="subscore-grid">
+                                <div class="subscore-card">
+                                    <div class="subscore-info">
+                                        <span><i class="fa-solid fa-code"></i> Skills Match</span>
+                                        <strong id="skills-score-val">0%</strong>
+                                    </div>
+                                    <div class="meter-bar"><div class="meter-fill" id="skills-meter"></div></div>
+                                </div>
+                                <div class="subscore-card">
+                                    <div class="subscore-info">
+                                        <span><i class="fa-solid fa-briefcase"></i> Experience Match</span>
+                                        <strong id="exp-score-val">0%</strong>
+                                    </div>
+                                    <div class="meter-bar"><div class="meter-fill" id="exp-meter"></div></div>
+                                </div>
+                                <div class="subscore-card">
+                                    <div class="subscore-info">
+                                        <span><i class="fa-solid fa-graduation-cap"></i> Education Match</span>
+                                        <strong id="edu-score-val">0%</strong>
+                                    </div>
+                                    <div class="meter-bar"><div class="meter-fill" id="edu-meter"></div></div>
+                                </div>
+                                <div class="subscore-card">
+                                    <div class="subscore-info">
+                                        <span><i class="fa-solid fa-bullseye"></i> Job Relevance</span>
+                                        <strong id="rel-score-val">0%</strong>
+                                    </div>
+                                    <div class="meter-bar"><div class="meter-fill" id="rel-meter"></div></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 2-COLUMN MAIN DETAILS -->
+                <div class="dashboard-grid">
+                    <!-- LEFT COLUMN -->
+                    <div class="dash-col">
+                        <!-- MATCHING SKILLS -->
+                        <div class="card glass-card">
+                            <div class="card-header">
+                                <h3><i class="fa-solid fa-circle-check icon-success"></i> Matching Skills</h3>
+                                <span class="badge-count" id="matching-skills-count">0 Skills</span>
+                            </div>
+                            <div class="tag-cloud" id="matching-skills-cloud">
+                                <!-- Tags injected via JS -->
+                            </div>
+                        </div>
+
+                        <!-- MISSING SKILLS / SKILL GAPS -->
+                        <div class="card glass-card">
+                            <div class="card-header">
+                                <h3><i class="fa-solid fa-triangle-exclamation icon-warning"></i> Skill Gaps Identified</h3>
+                                <span class="badge-count count-warning" id="missing-skills-count">0 Gaps</span>
+                            </div>
+                            <div class="gap-cards-list" id="missing-skills-list">
+                                <!-- Missing skill cards injected via JS -->
+                            </div>
+                        </div>
+
+                        <!-- CANDIDATE STRENGTHS -->
+                        <div class="card glass-card">
+                            <div class="card-header">
+                                <h3><i class="fa-solid fa-star icon-accent"></i> Top Candidate Strengths</h3>
+                            </div>
+                            <ul class="strengths-list" id="strengths-list">
+                                <!-- Strengths injected via JS -->
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- RIGHT COLUMN -->
+                    <div class="dash-col">
+                        <!-- AI REASONING / EXPLANATION -->
+                        <div class="card glass-card ai-explanation-card">
+                            <div class="card-header">
+                                <h3><i class="fa-solid fa-microchip icon-ai"></i> Why This Match? (AI Reasoning)</h3>
+                            </div>
+                            <div class="ai-summary-box">
+                                <p id="ai-summary-text">Generating reasoning summary...</p>
+                            </div>
+                        </div>
+
+                        <!-- SKILL GAP VISUALIZATION -->
+                        <div class="card glass-card">
+                            <div class="card-header">
+                                <h3><i class="fa-solid fa-sliders"></i> Skill Gap Breakdown</h3>
+                            </div>
+                            <div class="skill-vis-list" id="skill-vis-container">
+                                <!-- Progress bars injected via JS -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- PERSONALIZED CAREER ROADMAP -->
+                <section class="card glass-card roadmap-section">
+                    <div class="card-header">
+                        <div>
+                            <h3><i class="fa-solid fa-route icon-roadmap"></i> Personalized Career Roadmap</h3>
+                            <p class="section-sub">Actionable steps to bridge your skill gaps for this specific target role.</p>
+                        </div>
+                    </div>
+                    <div class="timeline" id="roadmap-timeline">
+                        <!-- Timeline steps injected via JS -->
+                    </div>
+                </section>
+
+                <!-- ATS COMPATIBILITY SECTION -->
+                <section class="card glass-card ats-section">
+                    <div class="card-header">
+                        <h3><i class="fa-solid fa-file-circle-check icon-ats"></i> ATS Compatibility Analysis</h3>
+                    </div>
+                    <div class="ats-grid">
+                        <div class="ats-score-box">
+                            <div class="ats-circle">
+                                <span id="ats-score-val">0</span>
+                                <small>/100</small>
+                            </div>
+                            <p class="ats-label">ATS Parse Score</p>
+                        </div>
+                        <div class="ats-details">
+                            <div class="ats-col">
+                                <h4><i class="fa-solid fa-check icon-success"></i> Key Strengths</h4>
+                                <ul class="ats-list" id="ats-strengths-list"></ul>
+                            </div>
+                            <div class="ats-col">
+                                <h4><i class="fa-solid fa-wrench icon-warning"></i> Recommended Improvements</h4>
+                                <ul class="ats-list" id="ats-improvements-list"></ul>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- INTERVIEW PREPARATION BANNER & MODAL -->
+                <section class="card glass-card prep-banner-card">
+                    <div class="prep-banner-content">
+                        <div>
+                            <h3><i class="fa-solid fa-comments icon-accent"></i> Ready to ace your interview?</h3>
+                            <p>Generate tailor-made interview questions based on your unique resume & target role gaps.</p>
+                        </div>
+                        <button class="btn btn-accent btn-lg" onclick="openInterviewModal()">
+                            <i class="fa-solid fa-microphone"></i> 🎤 PREPARE ME FOR THIS JOB
+                        </button>
+                    </div>
+                </section>
+            </div>
+        </main>
+
+        <!-- RECRUITER MODE SECTION -->
+        <main id="recruiter-mode-view" style="display: none;">
+            <section class="card glass-card">
+                <div class="card-header">
+                    <div>
+                        <h3><i class="fa-solid fa-users-rectangle"></i> Recruiter Multi-Candidate Matcher</h3>
+                        <p class="section-sub">Upload up to 10 candidate resumes to evaluate and rank candidate fit against one job description.</p>
+                    </div>
+                </div>
+
+                <div class="recruiter-inputs-grid">
+                    <div class="input-column">
+                        <label class="form-label">Select Multiple Resumes (PDF / DOCX / TXT)</label>
+                        <input type="file" id="recruiter-files-input" multiple accept=".pdf,.docx,.txt" class="file-input-field">
+                        <small class="help-text">Hold Ctrl / Cmd to select multiple candidate files.</small>
+                    </div>
+
+                    <div class="input-column">
+                        <label class="form-label">Target Job Description</label>
+                        <textarea id="recruiter-job-input" rows="4" placeholder="Paste job requirements here..."></textarea>
+                    </div>
+                </div>
+
+                <div class="action-footer" style="margin-top: 15px;">
+                    <button class="btn btn-primary" onclick="startRecruiterAnalysis()">
+                        <i class="fa-solid fa-layer-group"></i> 📊 RANK CANDIDATES
+                    </button>
+                </div>
+            </section>
+
+            <!-- RECRUITER RESULTS TABLE -->
+            <div id="recruiter-results" style="display: none; margin-top: 20px;">
+                <div class="card glass-card">
+                    <div class="card-header">
+                        <h3><i class="fa-solid fa-trophy"></i> Ranked Candidate Leaderboard</h3>
+                        <span class="badge-count" id="recruiter-cand-count">0 Candidates</span>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="recruiter-table">
+                            <thead>
+                                <tr>
+                                    <th>Rank</th>
+                                    <th>Candidate Name</th>
+                                    <th>Uploaded File</th>
+                                    <th>Match Score</th>
+                                    <th>Status Label</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="recruiter-table-body">
+                                <!-- Dynamic rows -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- RESPONSIBLE AI FOOTER NOTICE -->
+        <footer class="responsible-ai-footer">
+            <div class="responsible-box">
+                <i class="fa-solid fa-scale-balanced icon-scale"></i>
+                <div>
+                    <strong>RESPONSIBLE AI COMMITMENT</strong>
+                    <p>Candidate evaluations strictly focus on job-relevant qualifications (skills, project achievements, education, and relevant work history). Age, gender, ethnicity, or non-pertinent demographics are neither extracted nor considered.</p>
+                </div>
+            </div>
+            <p class="copyright-text">HireMind AI © 2026 — Built for Hackathons & Intelligent Recruiting</p>
+        </footer>
+    </div>
+
+    <!-- INTERVIEW PREPARATION MODAL -->
+    <div class="modal-overlay" id="interview-modal" style="display: none;">
+        <div class="modal-card glass-card">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-microphone-lines icon-accent"></i> Customized Interview Question Prep</h3>
+                <button class="modal-close-btn" onclick="closeInterviewModal()"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+
+            <div class="modal-body">
+                <div class="interview-tabs">
+                    <button class="int-tab active" onclick="switchInterviewCategory('technical')"><i class="fa-solid fa-code"></i> Technical</button>
+                    <button class="int-tab" onclick="switchInterviewCategory('project')"><i class="fa-solid fa-diagram-project"></i> Project</button>
+                    <button class="int-tab" onclick="switchInterviewCategory('behavioral')"><i class="fa-solid fa-user-gear"></i> Behavioral</button>
+                    <button class="int-tab" onclick="switchInterviewCategory('job_specific')"><i class="fa-solid fa-bullseye"></i> Job Specific</button>
+                </div>
+
+                <div class="interview-questions-list" id="interview-questions-container">
+                    <!-- Injected via JS -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TOAST NOTIFICATION CONTAINER -->
+    <div id="toast-container"></div>
+
+    <!-- Custom JavaScript -->
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>
